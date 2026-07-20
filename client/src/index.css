@@ -1,0 +1,15 @@
+/* Base styles only. Style the app however you like. */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial,
+    sans-serif;
+  background: #fafafa;
+  color: #111;
+}
