@@ -31,4 +31,6 @@ export interface Message {
 export interface Conversation {
   id: string;
   customerName: string;
+  previewText?: string;
+  lastMessageAt?: string;
 }
