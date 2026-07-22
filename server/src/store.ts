@@ -50,6 +50,30 @@ export function processInboundMessage(inbound: InboundMessage): {
   return { isNew: true, message };
 }
 
+// Adds an outbound reply from an agent or assistant.
+export function addReply(
+  conversationId: string,
+  text: string,
+  sender: SenderType,
+): Message {
+  const message: Message = {
+    id: crypto.randomUUID(), // Generate internal ID for outgoing messages
+    conversationId,
+    sender,
+    text,
+    timestamp: new Date().toISOString(), // Standardized ISO 8601[cite: 1]
+  };
+
+  const thread = messagesByConversation.get(conversationId);
+  if (thread) {
+    thread.push(message);
+  } else {
+    throw new Error('Conversation not found');
+  }
+
+  return message;
+}
+
 // Retrieves all distinct conversations.
 export function getAllConversations(): Conversation[] {
   return Array.from(conversations.values());
