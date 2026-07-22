@@ -17,3 +17,18 @@ export interface Product {
   price: number;
   inStock: boolean;
 }
+
+export type SenderType = 'customer' | 'agent' | 'assistant';
+
+export interface Message {
+  id: string;
+  conversationId: string;
+  sender: SenderType;
+  text: string;
+  timestamp: string;
+}
+
+export interface Conversation {
+  id: string;
+  customerName: string;
+}
