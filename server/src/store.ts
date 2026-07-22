@@ -3,75 +3,59 @@
 // file, or SQLite. No database server needed; note your choice in the README.
 //
 // Export whatever functions your routes need.
-import type { InboundMessage, Message, Conversation } from '../../shared/types.js';
+import type {
+  InboundMessage,
+  Message,
+  Conversation,
+  SenderType,
+} from '../../shared/types.js';
 
-/**
- * IN-MEMORY STORAGE CHOICE:
- * Using a Map<string, Conversation> for fast lookups by customer phone number (from field).
- * This is the simplest approach and fast enough for this assignment.
- * - Key: customer's phone number (from)
- * - Value: entire Conversation object with all messages
- */
-const conversationStore = new Map<string, Conversation>();
+// In-memory data structures
+const conversations = new Map<string, Conversation>();
+const messagesByConversation = new Map<string, Message[]>();
+const seenMessageIds = new Set<string>();
 
-/**
- * Save or update a conversation from an inbound webhook message.
- * If the customer (phone number) already exists, append the message.
- * If new customer, create a new conversation.
- * Prevents duplicate messages by checking message ID.
- */
-export function saveMessage(inboundMessage: InboundMessage): Conversation {
-  const { from, customerName, id: messageId } = inboundMessage;
-
-  // Check if conversation already exists for this customer
-  if (conversationStore.has(from)) {
-    const conversation = conversationStore.get(from)!;
-
-    // Prevent duplicate messages (same message ID arriving twice)
-    const isDuplicate = conversation.messages.some((msg) => msg.id === messageId);
-    if (!isDuplicate) {
-      // Add new message to existing conversation
-      const message: Message = {
-        ...inboundMessage,
-        conversationId: conversation.id,
-      };
-      conversation.messages.push(message);
-      conversation.updatedAt = new Date().toISOString();
-    }
-
-    return conversation;
+// Processes an inbound webhook message.
+// Handles the duplicate message requirement.
+export function processInboundMessage(inbound: InboundMessage): {
+  isNew: boolean;
+  message?: Message;
+} {
+  // Idempotency check
+  if (seenMessageIds.has(inbound.id)) {
+    return { isNew: false };
   }
 
-  // Create new conversation if customer doesn't exist
-  const conversationId = `conv-${from}-${Date.now()}`;
+  seenMessageIds.add(inbound.id);
+
+  // Group into one conversation per customer
+  if (!conversations.has(inbound.from)) {
+    conversations.set(inbound.from, {
+      id: inbound.from,
+      customerName: inbound.customerName,
+    });
+    messagesByConversation.set(inbound.from, []);
+  }
+
   const message: Message = {
-    ...inboundMessage,
-    conversationId,
+    id: inbound.id,
+    conversationId: inbound.from,
+    sender: 'customer',
+    text: inbound.text,
+    timestamp: inbound.timestamp,
   };
 
-  const newConversation: Conversation = {
-    id: conversationId,
-    from,
-    customerName,
-    messages: [message],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
+  messagesByConversation.get(inbound.from)!.push(message);
 
-  conversationStore.set(from, newConversation);
-  return newConversation;
+  return { isNew: true, message };
 }
 
-/**
- * Retrieve all conversations (for listing or export).
- */
+// Retrieves all distinct conversations.
 export function getAllConversations(): Conversation[] {
-  return Array.from(conversationStore.values());
+  return Array.from(conversations.values());
 }
 
-/**
- * Retrieve a single conversation by customer phone number.
- */
-export function getConversation(customerPhone: string): Conversation | undefined {
-  return conversationStore.get(customerPhone);
+// Retrieves the message thread for a specific conversation ID.
+export function getThread(conversationId: string): Message[] {
+  return messagesByConversation.get(conversationId) || [];
 }

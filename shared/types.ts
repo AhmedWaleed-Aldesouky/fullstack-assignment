@@ -22,7 +22,7 @@ export type SenderType = 'customer' | 'agent' | 'assistant';
 
 export interface Message {
   id: string;
-  conversationId: string;
+  conversationId: string; // One conversation per customer (from InboundMessage.from)
   sender: SenderType;
   text: string;
   timestamp: string;
