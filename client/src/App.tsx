@@ -5,6 +5,7 @@ export default function App() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [thread, setThread] = useState<Message[]>([]);
+  const [replyText, setReplyText] = useState('');
 
   // Fetch the inbox list on load
   useEffect(() => {
@@ -22,6 +23,54 @@ export default function App() {
       .then((data) => setThread(data))
       .catch(console.error);
   }, [activeId]);
+
+  // Handle sending a reply[cite: 1]
+  const handleReply = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!replyText.trim() || !activeId) return;
+
+    try {
+      const res = await fetch(`/api/conversations/${activeId}/reply`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: replyText }),
+      });
+
+      if (!res.ok) throw new Error('Failed to send reply');
+
+      const newMessage = await res.json();
+
+      // Append the new message to the active thread locally (Optimistic update)
+      setThread((prev) => [...prev, newMessage]);
+      setReplyText('');
+
+      // Update the preview text and timestamp in the sidebar[cite: 1]
+      setConversations((prev) =>
+        prev
+          .map((c) =>
+            c.id === activeId
+              ? {
+                  ...c,
+                  previewText: newMessage.text,
+                  lastMessageAt: newMessage.timestamp,
+                }
+              : c,
+          )
+          .sort((a, b) => {
+            // Re-sort to bring the updated conversation to the top[cite: 1]
+            const timeA = a.lastMessageAt
+              ? new Date(a.lastMessageAt).getTime()
+              : 0;
+            const timeB = b.lastMessageAt
+              ? new Date(b.lastMessageAt).getTime()
+              : 0;
+            return timeB - timeA;
+          }),
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   return (
     <main style={{ display: 'flex', height: '100vh', fontFamily: 'system-ui' }}>
@@ -136,6 +185,47 @@ export default function App() {
                 );
               })}
             </div>
+
+            {/* Reply Input Area */}
+            <form
+              onSubmit={handleReply}
+              style={{
+                padding: '1rem',
+                borderTop: '1px solid #ddd',
+                display: 'flex',
+                gap: '0.5rem',
+                background: '#f9f9f9',
+              }}
+            >
+              <input
+                type="text"
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                placeholder="Type your reply..."
+                style={{
+                  flex: 1,
+                  padding: '0.75rem',
+                  borderRadius: '8px',
+                  border: '1px solid #ccc',
+                  fontSize: '1rem',
+                }}
+              />
+              <button
+                type="submit"
+                disabled={!replyText.trim()}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: replyText.trim() ? '#007bff' : '#ccc',
+                  color: '#fff',
+                  fontWeight: 'bold',
+                  cursor: replyText.trim() ? 'pointer' : 'not-allowed',
+                }}
+              >
+                Send
+              </button>
+            </form>
           </>
         )}
       </div>
