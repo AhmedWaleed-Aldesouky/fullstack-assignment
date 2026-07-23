@@ -88,7 +88,7 @@ app.post('/api/conversations/:id/reply', (req, res) => {
   }
 
   try {
-    // Save the agent's manual reply to the store[cite: 1]
+    // Save the agent's manual reply to the store
     const newReply = addReply(id, text, 'agent');
     res.json(newReply);
   } catch (error) {

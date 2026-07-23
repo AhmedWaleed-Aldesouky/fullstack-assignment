@@ -103,15 +103,16 @@ Similar as provided.
 
 ## Decisions & trade-offs
 
-- **Duplicate-Message:** If the `ID` is the same, then it's exactly the same message, so it would be ignored. I thought about doing it with the text, but some times a similar messages (e.g., "Ok") are sent multiple times in the same conversation for different contexts, so it should be left. 
-- **Data-Store:** I added <ins>three types</ins>; 
-  * *Sender*: customer: from inbound message, agent: human agent, and asisstant: automatic asisstant.
-  * *Message*: more general than `InboundMessage` as it holds any message and reply.
-  * *Conversation:* one conversation per customer holding the whole message thread.
+- **Duplicate-Message:** If the `ID` is the same, then it's exactly the same message, so it would be ignored. I thought about doing it with the text, but some times a similar messages (e.g., "Ok") are sent multiple times in the same conversation for different contexts, so it should be left.
+- **Data-Store:** I added <ins>three types</ins>;
+  - _Sender_: customer: from inbound message, agent: human agent, and asisstant: automatic asisstant.
+  - _Message_: more general than `InboundMessage` as it holds any message and reply.
+  - _Conversation:_ one conversation per customer holding the whole message thread.
 
 ## AI usage
 
 I have already menitoned in my CV that I have experience in `NextJS` (as a fullstack framework using [Next-Forge](https://www.next-forge.com/docs) architecture), `TypeScript` and `ReactJS`. I never used `NodeJS`, or `ExpressJS`, so I used the AI (specifically `Gemini`, the web version) in:
+
 - **Backend:** to learn more about the syntax of `NodeJS`, which turned out to be very much similar to `NextJS`.
 - **Frontend:** better, faster frontend building with proper `HTML` structuring and good `CSS` styling.
 
@@ -119,14 +120,23 @@ I am coding in VS Code not in Cursor, because I consider myself in the learning 
 
 ## What's next
 
+### Required
+
 To be honest, I have only finished till step 4 in 2 work hours. For the remaining tasks:
+
 - Implementing `assistantReply()`: I can go in three levels:
-  * *level 1:* simple if conditioning; if the inboundMessage.text = ... , then addReply(...).
-  * *level 2:* introduce some AI api key (e.g., Google AI Studio free api keys) in a private `.env` file holding it as an environment variable, and give it some context about the conversation and the app (rules, proper responses, and when to not respond & make the notification for the <ins>human agent</ins> to respond). Then, I make sure he response is well-parsed and doesn't damage the frontend. Eventually, add the layer to parse, when the AI gives the wheel to the human agent.
-  * *level 3:* add some controlling AI prompt evaluation using an open-source tool like `PromptFoo` to ensure that this repsonse doesn't give some hallucination, isn't using too much tokens, gives proper concise responses, and doesn't take too much time.
- 
+  - _level 1:_ simple if conditioning; if the inboundMessage.text = ... , then addReply(...).
+  - _level 2:_ introduce some AI api key (e.g., Google AI Studio free api keys) in a private `.env` file holding it as an environment variable, and give it some context about the conversation and the app (rules, proper responses, and when to not respond & make the notification for the <ins>human agent</ins> to respond). Then, I make sure he response is well-parsed and doesn't damage the frontend. Eventually, add the layer to parse, when the AI gives the wheel to the human agent.
+  - _level 3:_ add some controlling AI prompt evaluation using an open-source tool like `PromptFoo` to ensure that this repsonse doesn't give some hallucination, isn't using too much tokens, gives proper concise responses, and doesn't take too much time.
+
 - Search conversations by customer name or message text: I can go up to four levels:
-  * *level 1:* implement proper <ins>lexical search</ins> to use exact strings or substrings from all the conversations or messages of the data. We give the user, two searching input areas (`search by customer name` aka. conversation, and `search by message`).
-  * *level 2:* (which I think for this app, we don't need to go further) implement lexical search by <ins>customer name</ins>, then by <ins>message</ins>. If both return null, we handle that by a message in the frontend.
-  * *level 3:* add a `use AI` button in the search bar for `semantic search`, but it would require either context management, and implementation of LLM chaining (request --> response --> parse --> action --> request --> response --> parse --> Action --> ...), which chain length depends on how large is the dataset, which add better UX with higher cost of implementation and maintenance.
-  * *level 4:* is about the hybrid search that, if there is no return with the lexical search, we start the flow of the semantic search without the user getting in the loop, which add a little bit better UX.
+  - _level 1:_ implement proper <ins>lexical search</ins> to use exact strings or substrings from all the conversations or messages of the data. We give the user, two searching input areas (`search by customer name` aka. conversation, and `search by message`).
+  - _level 2:_ (which I think for this app, we don't need to go further) implement lexical search by <ins>customer name</ins>, then by <ins>message</ins>. If both return null, we handle that by a message in the frontend.
+  - _level 3:_ add a `use AI` button in the search bar for `semantic search`, but it would require either context management, and implementation of LLM chaining (request --> response --> parse --> action --> request --> response --> parse --> Action --> ...), which chain length depends on how large is the dataset, which add better UX with higher cost of implementation and maintenance.
+  - _level 4:_ is about the hybrid search that, if there is no return with the lexical search, we start the flow of the semantic search without the user getting in the loop, which add a little bit better UX.
+
+### Optional
+
+- _Unread counts:_ could be done by a simple boolean flag <ins>read</ins> of default = false, once opened the conversation is handled by a state management, and could be unread using a button to update the state.
+- _Tests for the assistant:_ just same for the others.
+- _Loading:_ state management, so that the waiting promises can have the loading state and the loading CSS.
